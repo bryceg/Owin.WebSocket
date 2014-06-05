@@ -11,7 +11,6 @@ namespace Owin.WebSocket
         /// </summary>
         public static IServiceLocator DependencyResolver { get; set; }
 
-
         static GlobalContext()
         {
             DependencyResolver = new DefaultDependencyResolver();

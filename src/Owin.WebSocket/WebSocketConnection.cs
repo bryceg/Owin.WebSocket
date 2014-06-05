@@ -38,14 +38,14 @@ namespace Owin.WebSocket
             return mWebSocket.CloseAsync(status, reason, CancellationToken.None);
         }
 
-        public void SendAsyncBinary(byte[] buffer, bool endOfMessage)
+        public Task SendAsyncBinary(byte[] buffer, bool endOfMessage)
         {
-            SendAsync(new ArraySegment<byte>(buffer), endOfMessage, WebSocketMessageType.Binary);
+            return SendAsync(new ArraySegment<byte>(buffer), endOfMessage, WebSocketMessageType.Binary);
         }
 
-        public void SendAsyncText(byte[] buffer, bool endOfMessage)
+        public Task SendAsyncText(byte[] buffer, bool endOfMessage)
         {
-            SendAsync(new ArraySegment<byte>(buffer), endOfMessage, WebSocketMessageType.Text);
+            return SendAsync(new ArraySegment<byte>(buffer), endOfMessage, WebSocketMessageType.Text);
         }
 
         public Task SendAsync(ArraySegment<byte> buffer, bool endOfMessage, WebSocketMessageType type)
@@ -64,7 +64,7 @@ namespace Owin.WebSocket
         {
         }
 
-        public virtual void OnMessageReceived(ArraySegment<byte> message)
+        public virtual void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
         }
 
@@ -122,7 +122,7 @@ namespace Owin.WebSocket
             {
                 var received = await ReceiveOneMessage(buffer);
                 if (received.Item1.Count > 0)
-                    OnMessageReceived(received.Item1);
+                    OnMessageReceived(received.Item1, received.Item2);
             }
             while (mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty) == WebSocketCloseStatus.Empty);
 
