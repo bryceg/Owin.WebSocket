@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -18,7 +17,7 @@ namespace UnitTests
     public class WebSocketTests
     {
         private static IDisposable sWeb;
-        private static IServiceLocator sResolver;
+        private static TestResolver sResolver;
 
         [ClassCleanup]
         public static void Cleanup()
@@ -36,33 +35,70 @@ namespace UnitTests
             WebApp.Start(new StartOptions("http://localhost:8989"), startup =>
             {
                 startup.MapWebSocketRoute<TestConnection>("/ws");
+                startup.MapWebSocketPattern<TestConnection>("/captures/(?<capture1>.+)/(?<capture2>.+)");
             });
         }
 
-        [TestMethod]
-        public void TestMethod1()
+        ClientWebSocket StartStaticRouteClient()
         {
             var client = new ClientWebSocket();
             client.ConnectAsync(new Uri("ws://localhost:8989/ws"), CancellationToken.None).Wait();
+            return client;
+        }
+        ClientWebSocket StartRegextRouteClient(string param1, string param2)
+        {
+            var client = new ClientWebSocket();
+            client.ConnectAsync(
+                new Uri("ws://localhost:8989/captures/" + param1 + "/" + param2), 
+                CancellationToken.None)
+                .Wait();
+
+            return client;
+        }
+
+        [TestMethod]
+        public void ConnectionTest()
+        {
+            var client = StartStaticRouteClient();
             client.State.Should().Be(WebSocketState.Open);
-
-            var connection = sResolver.GetInstance<TestConnection>();
-
-            var toSend = "Test Data String";
-            SendText(client, toSend).Wait();
-
-            connection.LastMessage.Should().NotBeNull();
-            var received = Encoding.UTF8.GetString(
-                connection.LastMessage.Array,
-                connection.LastMessage.Offset,
-                connection.LastMessage.Count);
-
-            received.Should().Be(toSend);
 
             client.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None)
                 .Wait();
 
             client.State.Should().Be(WebSocketState.Closed);
+        }
+
+        [TestMethod]
+        public void SendTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+            var client = StartStaticRouteClient();
+
+            var toSend = "Test Data String";
+            SendText(client, toSend).Wait();
+            Thread.Sleep(100);
+
+            socket.LastMessage.Should().NotBeNull();
+            var received = Encoding.UTF8.GetString(
+                socket.LastMessage.Array,
+                socket.LastMessage.Offset,
+                socket.LastMessage.Count);
+
+            received.Should().Be(toSend);
+        }
+
+        [TestMethod]
+        public void ArgumentsTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+            var param1 = "foo1";
+            var param2 = "foo2";
+            var client = StartRegextRouteClient(param1, param2);
+
+            socket.Arguments["capture1"].Should().Be(param1);
+            socket.Arguments["capture2"].Should().Be(param2);
         }
 
         async Task SendText(ClientWebSocket socket, string data)
@@ -79,7 +115,7 @@ namespace UnitTests
 
     class TestResolver: IServiceLocator
     {
-        public Dictionary<Type, object> mTypes = new Dictionary<Type, object>();
+        public Dictionary<Type, object> Types = new Dictionary<Type, object>();
 
         public object GetService(Type serviceType)
         {
@@ -89,10 +125,10 @@ namespace UnitTests
         public object GetInstance(Type serviceType)
         {
             object t;
-            if (!mTypes.TryGetValue(serviceType, out t))
+            if (!Types.TryGetValue(serviceType, out t))
             {
                 t = Activator.CreateInstance(serviceType);
-                mTypes.Add(serviceType, t);
+                Types.Add(serviceType, t);
             }
 
             return t;
@@ -111,10 +147,10 @@ namespace UnitTests
         public TService GetInstance<TService>()
         {
             object t;
-            if (!mTypes.TryGetValue(typeof(TService), out t))
+            if (!Types.TryGetValue(typeof(TService), out t))
             {
                 t = Activator.CreateInstance<TService>();
-                mTypes.Add(typeof(TService), t);
+                Types.Add(typeof(TService), t);
             }
 
             return (TService)t;
