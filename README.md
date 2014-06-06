@@ -21,8 +21,10 @@ Getting Started:
 
 2) In your OWIN Startup, set the URI mapping for the websocket connection.
 
+     using Owin.WebSocket.Extensions;
+
      //For static routes 'http://foo.com/ws' use MapWebSocketRoute
-     startup.MapWebSocketRoute<MyWebSocket>("/ws");
+     app.MapWebSocketRoute<MyWebSocket>("/ws");
 
      //For dynamic routes where you may want to capture the URI arguments use a Regex route
-     startup.MapWebSocketPattern<MyWebSocket>("/captures/(?<capture1>.+)/(?<capture2>.+)");
+     app.MapWebSocketPattern<MyWebSocket>("/captures/(?<capture1>.+)/(?<capture2>.+)");
