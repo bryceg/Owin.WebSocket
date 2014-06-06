@@ -15,7 +15,7 @@ Getting Started:
         {
            //Handle the message from the client
            //json = Encoding.UT8.GetString(message.Array, message.Offset, message.Count);
-           //IUse Json.Net to deserialize the json
+           //Use something like Json.Net to read the json
         }
     }
 
