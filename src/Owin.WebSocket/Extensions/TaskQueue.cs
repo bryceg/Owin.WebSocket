@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ namespace Owin.WebSocket.Extensions
         private long mSize;
 
         public long Size { get { return mSize;} }
-
+        
         public TaskQueue()
             : this(TaskAsyncHelper.Empty)
         {
@@ -27,7 +26,10 @@ namespace Owin.WebSocket.Extensions
             mLastQueuedTask = initialTask;
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This is shared code")]
+        /// <summary>
+        /// Enqueue a new task on the end of the queue
+        /// </summary>
+        /// <returns>The enqueued Task or NULL if the max size of the queue was reached</returns>
         public Task Enqueue<T>(Func<T, Task> taskFunc, T state)
         {
             // Lock the object for as short amount of time as possible
@@ -50,7 +52,7 @@ namespace Owin.WebSocket.Extensions
                     }
                 }
 
-                Task newTask = mLastQueuedTask.Then((next, nextState) =>
+                var newTask = mLastQueuedTask.Then((next, nextState) =>
                 {
                     return next(nextState).Finally(s =>
                     {
@@ -70,14 +72,18 @@ namespace Owin.WebSocket.Extensions
             }
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This is shared code")]
-        public Task Drain()
+        /// <summary>
+        /// Triggers a drain fo the task queue and waits for the drain to complete
+        /// </summary>
+        public void Drain()
         {
             lock (mLockObj)
             {
                 mDrained = true;
 
-                return mLastQueuedTask;
+                mLastQueuedTask.Wait();
+
+                mDrained = false;
             }
         }
     }

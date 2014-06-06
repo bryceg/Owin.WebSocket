@@ -5,7 +5,7 @@ namespace Owin.WebSocket.Extensions
     public static class OwinExtension
     {
         /// <summary>
-        /// Maps a static uri to a web socket consumer
+        /// Maps a static URI to a web socket consumer
         /// </summary>
         /// <typeparam name="T">Type of WebSocketHubConsumer</typeparam>
         /// <param name="app">Owin App</param>
@@ -17,7 +17,7 @@ namespace Owin.WebSocket.Extensions
         }
 
         /// <summary>
-        /// Maps a uri pattern to a web socket consumer
+        /// Maps a URI pattern to a web socket consumer using a Regex pattern mach on the URI
         /// </summary>
         /// <typeparam name="T">Type of WebSocketHubConsumer</typeparam>
         /// <param name="app">Owin app</param>

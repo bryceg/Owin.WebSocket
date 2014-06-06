@@ -9,9 +9,9 @@ namespace Owin.WebSocket.Extensions
 {
     public static class TaskAsyncHelper
     {
-        private static readonly Task _emptyTask = MakeTask<object>(null);
-        private static readonly Task<bool> _trueTask = MakeTask<bool>(true);
-        private static readonly Task<bool> _falseTask = MakeTask<bool>(false);
+        private static readonly Task mEmptyTask = MakeTask<object>(null);
+        private static readonly Task<bool> mTrueTask = MakeTask<bool>(true);
+        private static readonly Task<bool> mFalseTask = MakeTask<bool>(false);
 
         private static Task<T> MakeTask<T>(T value)
         {
@@ -23,7 +23,7 @@ namespace Owin.WebSocket.Extensions
         {
             get
             {
-                return _emptyTask;
+                return mEmptyTask;
             }
         }
         
