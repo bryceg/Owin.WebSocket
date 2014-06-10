@@ -2,5 +2,8 @@ src/Owin.WebSocket/bin
 src/Owin.WebSocket/obj
 src/Owin.WebSocket/packages
 src/packages
+src/UnitTests/bin
+src/UnitTests/obj
 *.dll
 *.pdb
+*.suo

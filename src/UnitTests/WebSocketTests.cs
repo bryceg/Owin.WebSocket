@@ -171,9 +171,17 @@ namespace UnitTests
     {
         public ArraySegment<byte> LastMessage { get; set; }
 
-        public override void OnMessageReceived(ArraySegment<byte> message)
+        public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
             LastMessage = message;
+        }
+    }
+
+    class EchoConnection : WebSocketConnection
+    {
+        public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+        {
+            SendAsync(message, true, type);
         }
     }
 }
