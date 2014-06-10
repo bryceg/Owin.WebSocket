@@ -1,0 +1,6 @@
+src/Owin.WebSocket/bin
+src/Owin.WebSocket/obj
+src/Owin.WebSocket/packages
+src/packages
+*.dll
+*.pdb
