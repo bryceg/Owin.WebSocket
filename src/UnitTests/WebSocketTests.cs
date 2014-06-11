@@ -45,6 +45,7 @@ namespace UnitTests
             client.ConnectAsync(new Uri("ws://localhost:8989/ws"), CancellationToken.None).Wait();
             return client;
         }
+
         ClientWebSocket StartRegextRouteClient(string param1, string param2)
         {
             var client = new ClientWebSocket();
@@ -170,18 +171,22 @@ namespace UnitTests
     class TestConnection: WebSocketConnection
     {
         public ArraySegment<byte> LastMessage { get; set; }
+        public bool OnOpenCalled { get; set; }
+        public bool OnCloseCalled { get; set; }
 
         public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
             LastMessage = message;
         }
-    }
 
-    class EchoConnection : WebSocketConnection
-    {
-        public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+        public override void OnOpen()
         {
-            SendAsync(message, true, type);
+            OnOpenCalled = true;
+        }
+
+        public override void OnClose()
+        {
+            OnCloseCalled = true;
         }
     }
 }

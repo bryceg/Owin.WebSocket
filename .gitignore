@@ -4,6 +4,7 @@ src/Owin.WebSocket/packages
 src/packages
 src/UnitTests/bin
 src/UnitTests/obj
+src/build
 *.dll
 *.pdb
 *.suo
