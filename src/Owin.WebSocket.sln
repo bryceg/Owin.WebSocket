@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.WebSocket", "Owin.WebSocket.csproj", "{B1D742F7-39FA-498C-B22E-1A7A61C301E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.WebSocket", "Owin.WebSocket\Owin.WebSocket.csproj", "{B1D742F7-39FA-498C-B22E-1A7A61C301E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "..\UnitTests\UnitTests.csproj", "{E8AAA2FB-EA74-4120-B0A0-838926422AF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E8AAA2FB-EA74-4120-B0A0-838926422AF1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8DCED5B7-4C62-4900-B899-4DA1C6A238CF}"
 	ProjectSection(SolutionItems) = preProject
