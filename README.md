@@ -3,6 +3,8 @@ Owin.WebSocket
 
 An library for handling OWIN WebSocket connections
 
+[![Build status](https://ci.appveyor.com/api/projects/status/muxueaiirqenc859)](https://ci.appveyor.com/project/bryceg/owin-websocket)
+
 This library was born from a need to replace the SignalR default of json serialization.  Some code is borrowed from SignalR and built upon to handle the web socket connection, and allow the need to handle the serialization seperately.  By default most people will use JSON due to the wide understanding of it and native support in the browsers.  Other types could easily be swapped in such as Protobuf or msgpack as you see fit. 
 
 
