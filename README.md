@@ -3,6 +3,9 @@ Owin.WebSocket
 
 An library for handling OWIN WebSocket connections
 
+This library was born from a need to replace the SignalR default of json serialization.  Some code is borrowed from SignalR and built upon to handle the web socket connection, and allow the implimentor to handle the serialization.  By default most people will use JSON due to the wide understanding of it and native support in the browsers.  Other types could easily be swapped in such as Protobuf or msgpack as you see fit. 
+
+
 Getting Started:
 
 1) Inherit from WebSocketConnection
@@ -21,7 +24,7 @@ Getting Started:
         }
     }
 
-2) In your OWIN Startup, set the URI mapping for the websocket connection.
+2) In your OWIN Startup, set the URI mapping for the websocket connection.  A new instance of this class will be instantiated per web socket connection.  Refer To Owin.WebSocket.GlobalContext.DepedencyResolver if you wish to change the default resolver and use your own IoC.
 
      using Owin.WebSocket.Extensions;
 
@@ -51,3 +54,10 @@ Getting Started:
             SendAsyncText(toSend, true);
         }
     }
+
+
+Javascript Client:
+ http://msdn.microsoft.com/en-us/library/ie/hh673567(v=vs.85).aspx
+
+
+
