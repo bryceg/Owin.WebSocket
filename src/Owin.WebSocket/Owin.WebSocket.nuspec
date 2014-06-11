@@ -3,7 +3,7 @@
     <metadata>
         <id>Owin.WebSocket</id>
         <version>1.0.0</version>
-        <title>OWIN WebSocket</title>
+        <title>Owin.WebSocket</title>
         <authors>Bryce Godfrey</authors>
         <owners>Bryce Godfrey</owners>
         <projectUrl>https://github.com/bryceg/Owin.WebSocket</projectUrl>
@@ -16,6 +16,6 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="build\Owin.WebSocket.dll" target="Owin.WebSocket.dll" />
+        <file src="..\build\Owin.WebSocket.dll" target="Owin.WebSocket.dll" />
     </files>
 </package>
