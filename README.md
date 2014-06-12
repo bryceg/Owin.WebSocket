@@ -10,6 +10,8 @@ This library was born from a need to replace the SignalR default of json seriali
 
 Getting Started:
 
+Install the Nuget package: https://www.nuget.org/packages/Owin.WebSocket/
+
 1) Inherit from WebSocketConnection
 
     using Owin.WebSocket;
