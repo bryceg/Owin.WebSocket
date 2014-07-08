@@ -72,6 +72,9 @@ namespace UnitTests
         [TestMethod]
         public void CloseWithEmptyStatusTest()
         {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+
             var client = StartStaticRouteClient();
             client.State.Should().Be(WebSocketState.Open);
 
@@ -79,6 +82,7 @@ namespace UnitTests
                 .Wait();
 
             client.State.Should().Be(WebSocketState.Closed);
+            socket.OnCloseCalled.Should().BeTrue();
         }
 
         [TestMethod]
