@@ -171,7 +171,7 @@ namespace Owin.WebSocket
                 if (received.Item1.Count > 0)
                     OnMessageReceived(received.Item1, received.Item2);
             }
-            while (mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty) == WebSocketCloseStatus.Empty);
+            while (!mWebSocket.CloseStatus.HasValue);
 
             await mWebSocket.CloseAsync(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
                 mWebSocket.CloseStatusDescription, mCancellToken.Token);
