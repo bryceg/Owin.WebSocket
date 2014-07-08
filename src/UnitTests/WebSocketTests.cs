@@ -70,6 +70,18 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void CloseWithEmptyStatusTest()
+        {
+            var client = StartStaticRouteClient();
+            client.State.Should().Be(WebSocketState.Open);
+
+            client.CloseAsync(WebSocketCloseStatus.Empty, string.Empty, CancellationToken.None)
+                .Wait();
+
+            client.State.Should().Be(WebSocketState.Closed);
+        }
+
+        [TestMethod]
         public void SendTest()
         {
             var socket = new TestConnection();
