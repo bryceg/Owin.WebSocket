@@ -115,7 +115,9 @@ namespace Owin.WebSocket
         /// <summary>
         /// Fires with the connection with the client has closed
         /// </summary>
-        public virtual void OnClose()
+        /// <param name="closeStatus">Status for the web socket close status</param>
+        /// <param name="closeDescription">Description for the web socket close</param>
+        public virtual void OnClose(WebSocketCloseStatus closeStatus, string closeDescription)
         {
         }
 
@@ -178,7 +180,8 @@ namespace Owin.WebSocket
 
             mCancellToken.Cancel();
 
-            OnClose();
+            OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
+                mWebSocket.CloseStatusDescription);
         }
     }
 

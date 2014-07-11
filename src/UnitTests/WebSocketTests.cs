@@ -81,8 +81,33 @@ namespace UnitTests
             client.CloseAsync(WebSocketCloseStatus.Empty, string.Empty, CancellationToken.None)
                 .Wait();
 
+            //Let the networking happen
+            Thread.Sleep(500);
+
             client.State.Should().Be(WebSocketState.Closed);
             socket.OnCloseCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void CloseWithStatusTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+
+            var client = StartStaticRouteClient();
+            client.State.Should().Be(WebSocketState.Open);
+
+            const string CLOSE_DESCRIPTION = "My Description";
+
+            client.CloseAsync(WebSocketCloseStatus.NormalClosure, CLOSE_DESCRIPTION, CancellationToken.None)
+                .Wait();
+
+            //Let the networking happen
+            Thread.Sleep(500);
+
+            socket.OnCloseCalled.Should().BeTrue();
+            socket.CloseStatus.Should().Be(WebSocketCloseStatus.NormalClosure);
+            socket.CloseDescription.Should().Be(CLOSE_DESCRIPTION);
         }
 
         [TestMethod]
@@ -102,6 +127,31 @@ namespace UnitTests
                 socket.LastMessage.Offset,
                 socket.LastMessage.Count);
 
+            received.Should().Be(toSend);
+        }
+
+        [TestMethod]
+        public void ReceiveTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+            var client = StartStaticRouteClient();
+
+            var buffer = new byte[64*1024];
+            var segment = new ArraySegment<byte>(buffer);
+            var receiveCount = 0;
+            var receiveTask = Task.Run(async () =>
+            {
+                var result = await client.ReceiveAsync(segment, CancellationToken.None);
+                receiveCount = result.Count;
+            });
+
+            var toSend = "Test Data String";
+            SendText(client, toSend).Wait();
+
+            receiveTask.Wait();
+
+            var received = Encoding.UTF8.GetString(segment.Array, segment.Offset, receiveCount);
             received.Should().Be(toSend);
         }
 
@@ -190,9 +240,15 @@ namespace UnitTests
         public bool OnOpenCalled { get; set; }
         public bool OnCloseCalled { get; set; }
 
+        public WebSocketCloseStatus CloseStatus { get; set; }
+        public string CloseDescription { get; set; }
+
         public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
             LastMessage = message;
+
+            //Echo it back
+            SendAsync(message, true, type);
         }
 
         public override void OnOpen()
@@ -200,9 +256,11 @@ namespace UnitTests
             OnOpenCalled = true;
         }
 
-        public override void OnClose()
+        public override void OnClose(WebSocketCloseStatus status, string description)
         {
             OnCloseCalled = true;
+            CloseStatus = status;
+            CloseDescription = description;
         }
     }
 }
