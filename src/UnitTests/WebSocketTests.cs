@@ -130,7 +130,7 @@ namespace UnitTests
             task.Wait(TimeSpan.FromMinutes(2)).Should().BeTrue();
 
             socket.OnCloseCalled.Should().BeTrue();
-            socket.CloseStatus.Should().Be(WebSocketCloseStatus.EndpointUnavailable);
+            socket.CloseStatus.Should().Be(WebSocketCloseStatus.Empty);
         }
 
         [TestMethod]
