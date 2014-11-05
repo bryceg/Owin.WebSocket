@@ -167,21 +167,46 @@ namespace Owin.WebSocket
             OnOpen();
 
             var buffer = new byte[MaxMessageSize];
+            var socketException = false;
+            var socketErrorMsg = string.Empty;
+
             do
             {
-                var received = await ReceiveOneMessage(buffer);
-                if (received.Item1.Count > 0)
-                    OnMessageReceived(received.Item1, received.Item2);
+                try
+                {
+                    var received = await ReceiveOneMessage(buffer);
+                    if (received.Item1.Count > 0)
+                        OnMessageReceived(received.Item1, received.Item2);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
+                catch (WebSocketException we)
+                {
+                    socketException = true;
+                    socketErrorMsg = we.Message;
+                    break;
+                }
             }
             while (!mWebSocket.CloseStatus.HasValue);
 
-            await mWebSocket.CloseAsync(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
-                mWebSocket.CloseStatusDescription, mCancellToken.Token);
+            if (!socketException)
+            {
+                await
+                    mWebSocket.CloseAsync(
+                        mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
+                        mWebSocket.CloseStatusDescription,
+                        mCancellToken.Token);
 
-            mCancellToken.Cancel();
+                mCancellToken.Cancel();
 
-            OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
-                mWebSocket.CloseStatusDescription);
+                OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty), mWebSocket.CloseStatusDescription);
+            } else
+            {
+                mCancellToken.Cancel();
+                OnClose(WebSocketCloseStatus.Empty, socketErrorMsg);
+            }
         }
     }
 

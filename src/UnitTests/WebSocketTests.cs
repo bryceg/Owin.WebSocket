@@ -111,6 +111,29 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void CloseByDisconnectingTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+
+            var client = StartStaticRouteClient();
+            client.State.Should().Be(WebSocketState.Open);
+
+            client.Dispose();
+            var task = Task.Run(
+                () =>
+                    {
+                        while (!socket.OnCloseCalled)
+                            Thread.Sleep(10);
+                    });
+
+            task.Wait(TimeSpan.FromMinutes(2)).Should().BeTrue();
+
+            socket.OnCloseCalled.Should().BeTrue();
+            socket.CloseStatus.Should().Be(WebSocketCloseStatus.EndpointUnavailable);
+        }
+
+        [TestMethod]
         public void SendTest()
         {
             var socket = new TestConnection();
