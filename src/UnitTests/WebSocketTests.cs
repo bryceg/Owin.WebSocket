@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
 using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -39,9 +42,14 @@ namespace UnitTests
             });
         }
 
-        ClientWebSocket StartStaticRouteClient()
+        ClientWebSocket StartStaticRouteClient(NetworkCredential cred = null)
         {
             var client = new ClientWebSocket();
+            if (cred != null)
+            {
+                client.Options.UseDefaultCredentials = true;
+                client.Options.Credentials = cred;
+            }
             client.ConnectAsync(new Uri("ws://localhost:8989/ws"), CancellationToken.None).Wait();
             return client;
         }
@@ -191,6 +199,57 @@ namespace UnitTests
             socket.Arguments["capture2"].Should().Be(param2);
         }
 
+        [TestMethod]
+        public void BadRequestTest()
+        {
+            var client = new WebClient();
+            var t = new Action(() => client.OpenRead("http://localhost:8989/ws"));
+            var ex = t.ShouldThrow<WebException>().Which;
+            (((HttpWebResponse) (ex.Response)).StatusCode).Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [TestMethod]
+        public void SendTextTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+            var client = StartStaticRouteClient();
+
+            var text = Encoding.UTF8.GetBytes("My Text to send");
+            client.SendAsync(new ArraySegment<byte>(text), WebSocketMessageType.Text, true, CancellationToken.None)
+                .Wait();
+
+            Thread.Sleep(50);
+
+            var val = Encoding.UTF8.GetString(socket.LastMessage.Array, socket.LastMessage.Offset, socket.LastMessage.Count);
+            val.Should().Be("My Text to send");
+            socket.LastMessageType.Should().Be(WebSocketMessageType.Text);
+        }
+
+        [TestMethod]
+        public void SendBinaryTest()
+        {
+            var socket = new TestConnection();
+            sResolver.Types[typeof(TestConnection)] = socket;
+            var client = StartStaticRouteClient();
+
+            var data = new byte[1024];
+            data[9] = 4;
+            data[599] = 123;
+            client.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, CancellationToken.None)
+                .Wait();
+
+            Thread.Sleep(50);
+
+            socket.LastMessage.Count.Should().Be(data.Length);
+            socket.LastMessageType.Should().Be(WebSocketMessageType.Binary);
+
+            for (var i = 0; i < socket.LastMessage.Count; i++)
+            {
+                (socket.LastMessage.Array[socket.LastMessage.Offset + i] == data[i]).Should().BeTrue();
+            }
+        }
+
         async Task SendText(ClientWebSocket socket, string data)
         {
             var t = Encoding.UTF8.GetBytes(data);
@@ -260,8 +319,10 @@ namespace UnitTests
     class TestConnection: WebSocketConnection
     {
         public ArraySegment<byte> LastMessage { get; set; }
+        public WebSocketMessageType LastMessageType { get; set; }
         public bool OnOpenCalled { get; set; }
         public bool OnCloseCalled { get; set; }
+        public IOwinRequest Request { get; set; }
 
         public WebSocketCloseStatus CloseStatus { get; set; }
         public string CloseDescription { get; set; }
@@ -269,6 +330,7 @@ namespace UnitTests
         public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
             LastMessage = message;
+            LastMessageType = type;
 
             //Echo it back
             SendAsync(message, true, type);

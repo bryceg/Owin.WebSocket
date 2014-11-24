@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
+using System.Runtime.Remoting.Channels;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -13,6 +15,11 @@ namespace Owin.WebSocket
         private readonly TaskQueue mSendQueue;
         private readonly CancellationTokenSource mCancellToken;
         private System.Net.WebSockets.WebSocket mWebSocket;
+
+        /// <summary>
+        /// Owin context for the web socket
+        /// </summary>
+        public IOwinContext Context { get; private set; }
 
         /// <summary>
         /// Maximum message size in bytes for the receive buffer
@@ -97,6 +104,16 @@ namespace Owin.WebSocket
         }
 
         /// <summary>
+        /// Verify the request
+        /// </summary>
+        /// <param name="request">Websocket request</param>
+        /// <returns>True if the request is authenticated else false to throw unauthenticated and deny the connection</returns>
+        public virtual bool AuthenticateRequest(IOwinRequest request)
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Fires after the websocket has been opened with the client
         /// </summary>
         public virtual void OnOpen()
@@ -145,12 +162,42 @@ namespace Owin.WebSocket
             var accept = context.Get<Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>>("websocket.Accept");
             if (accept == null)
             {
-                throw new InvalidOperationException("Not a web socket request");
+                // Bad Request
+                context.Response.StatusCode = 400;
+                context.Response.Write("Not a valid websocket request");
+                return;
             }
 
             Arguments = new Dictionary<string, string>(argumentMatches);
 
-            accept(null, RunWebSocket);
+            var responseBuffering = context.Environment.Get<Action>("server.DisableResponseBuffering");
+            if (responseBuffering != null)
+                responseBuffering();
+
+            var responseCompression = context.Environment.Get<Action>("systemweb.DisableResponseCompression");
+            if (responseCompression != null)
+                responseCompression();
+
+            context.Response.Headers.Set("X-Content-Type-Options", "nosniff");
+
+            Context = context;
+
+            if (AuthenticateRequest(context.Request))
+            {
+                //user was authed so accept the socket
+                accept(null, RunWebSocket);
+                return;
+            }
+
+            //see if user was forbidden or unauthorized from previous authenticaterequest failure
+            if (context.Request.User != null && context.Request.User.Identity.IsAuthenticated)
+            {
+                context.Response.StatusCode = 403;
+            }
+            else
+            {
+                context.Response.StatusCode = 401;
+            }
         }
 
         private async Task RunWebSocket(IDictionary<string, object> websocketContext)
