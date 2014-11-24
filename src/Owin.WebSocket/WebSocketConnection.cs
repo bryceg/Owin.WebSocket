@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
+using System.Runtime.Remoting.Channels;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
@@ -169,12 +170,34 @@ namespace Owin.WebSocket
 
             Arguments = new Dictionary<string, string>(argumentMatches);
 
-            if (!AuthenticateRequest(context.Request))
-                throw new AuthenticationException();
+            var responseBuffering = context.Environment.Get<Action>("server.DisableResponseBuffering");
+            if (responseBuffering != null)
+                responseBuffering();
+
+            var responseCompression = context.Environment.Get<Action>("systemweb.DisableResponseCompression");
+            if (responseCompression != null)
+                responseCompression();
+
+            context.Response.Headers.Set("X-Content-Type-Options", "nosniff");
 
             Context = context;
 
-            accept(null, RunWebSocket);
+            if (AuthenticateRequest(context.Request))
+            {
+                //user was authed so accept the socket
+                accept(null, RunWebSocket);
+                return;
+            }
+
+            //see if user was forbidden or unauthorized from previous authenticaterequest failure
+            if (context.Request.User != null && context.Request.User.Identity.IsAuthenticated)
+            {
+                context.Response.StatusCode = 403;
+            }
+            else
+            {
+                context.Response.StatusCode = 401;
+            }
         }
 
         private async Task RunWebSocket(IDictionary<string, object> websocketContext)

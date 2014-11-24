@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Owin.WebSocket.Extensions
 {
@@ -26,6 +27,17 @@ namespace Owin.WebSocket.Extensions
             where T : WebSocketConnection
         {
             app.Use<WebSocketConnectionMiddleware<T>>(new Regex(regexPatternMatch, RegexOptions.Compiled | RegexOptions.IgnoreCase));
+        }
+
+        public static T Get<T>(this IDictionary<string, object> dictionary, string key)
+        {
+            object item;
+            if (dictionary.TryGetValue(key, out item))
+            {
+                return (T) item;
+            }
+
+            return default(T);
         }
     }
 }
