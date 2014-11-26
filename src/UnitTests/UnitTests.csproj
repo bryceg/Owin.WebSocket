@@ -89,6 +89,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="TaskQueueTests.cs" />
     <Compile Include="WebSocketTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

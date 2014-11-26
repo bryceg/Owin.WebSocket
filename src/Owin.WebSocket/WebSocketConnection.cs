@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
-using System.Runtime.Remoting.Channels;
-using System.Security.Authentication;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -25,6 +24,11 @@ namespace Owin.WebSocket
         /// Maximum message size in bytes for the receive buffer
         /// </summary>
         public int MaxMessageSize { get; private set; }
+
+        /// <summary>
+        /// The underlying websocket connection
+        /// </summary>
+        public System.Net.WebSockets.WebSocket WebSocket { get { return mWebSocket; } }
 
         /// <summary>
         /// Arguments captured from URI using Regex
@@ -139,6 +143,14 @@ namespace Owin.WebSocket
         }
 
         /// <summary>
+        /// Fires when an exception occurs in the message reading loop
+        /// </summary>
+        /// <param name="error">Error that occured</param>
+        public virtual void OnReceiveError(Exception error)
+        {
+        }
+
+        /// <summary>
         /// Receive one entire message from the web socket
         /// </summary>
         protected async Task<Tuple<ArraySegment<byte>, WebSocketMessageType>> ReceiveOneMessage(byte[] buffer)
@@ -214,8 +226,6 @@ namespace Owin.WebSocket
             OnOpen();
 
             var buffer = new byte[MaxMessageSize];
-            var socketException = false;
-            var socketErrorMsg = string.Empty;
 
             do
             {
@@ -229,31 +239,63 @@ namespace Owin.WebSocket
                 {
                     break;
                 }
-                catch (WebSocketException we)
+                catch (OperationCanceledException oce)
                 {
-                    socketException = true;
-                    socketErrorMsg = we.Message;
+                    if (!mCancellToken.IsCancellationRequested)
+                    {
+                        OnReceiveError(oce);
+                    }
+                    break;
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (IsFatalSocketException(ex))
+                    {
+                        OnReceiveError(ex);
+                    }
                     break;
                 }
             }
             while (!mWebSocket.CloseStatus.HasValue);
 
-            if (!socketException)
+            try
             {
-                await
-                    mWebSocket.CloseAsync(
-                        mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
-                        mWebSocket.CloseStatusDescription,
-                        mCancellToken.Token);
-
-                mCancellToken.Cancel();
-
-                OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty), mWebSocket.CloseStatusDescription);
-            } else
-            {
-                mCancellToken.Cancel();
-                OnClose(WebSocketCloseStatus.Empty, socketErrorMsg);
+                if (mWebSocket.State != WebSocketState.Closed && mWebSocket.State != WebSocketState.Aborted)
+                {
+                    await mWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                }
             }
+            finally
+            {
+                mCancellToken.Cancel();
+
+                OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
+                    mWebSocket.CloseStatusDescription);
+            }
+        }
+
+        internal static bool IsFatalSocketException(Exception ex)
+        {
+            // If this exception is due to the underlying TCP connection going away, treat as a normal close
+            // rather than a fatal exception.
+            var ce = ex as COMException;
+            if (ce != null)
+            {
+                switch ((uint)ce.ErrorCode)
+                {
+                    case 0x800703e3:
+                    case 0x800704cd:
+                    case 0x80070026:
+                        return false;
+                }
+            }
+
+            // unknown exception; treat as fatal
+            return true;
         }
     }
 

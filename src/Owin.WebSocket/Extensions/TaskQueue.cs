@@ -11,10 +11,18 @@ namespace Owin.WebSocket.Extensions
         private readonly object mLockObj = new object();
         private Task mLastQueuedTask;
         private volatile bool mDrained;
-        private readonly int? mMaxSize;
-        private long mSize;
+        private int? mMaxSize;
+        private int mSize;
 
-        public long Size { get { return mSize;} }
+        /// <summary>
+        /// Current size of the queue depth
+        /// </summary>
+        public int Size { get { return mSize; } }
+
+        /// <summary>
+        /// Maximum size of the queue depth.  Null = unlimited
+        /// </summary>
+        public int? MaxSize { get { return mMaxSize; } }
         
         public TaskQueue()
             : this(TaskAsyncHelper.Empty)
@@ -24,6 +32,16 @@ namespace Owin.WebSocket.Extensions
         public TaskQueue(Task initialTask)
         {
             mLastQueuedTask = initialTask;
+        }
+
+        /// <summary>
+        /// Set the maximum size of the Task Queue chained operations.  
+        /// When pending send operations limits reached a null Task will be returned from Enqueue
+        /// </summary>
+        /// <param name="maxSize">Maximum size of the queue</param>
+        public void SetMaxQueueSize(int? maxSize)
+        {
+            mMaxSize = maxSize;
         }
 
         /// <summary>
@@ -40,10 +58,12 @@ namespace Owin.WebSocket.Extensions
                     return mLastQueuedTask;
                 }
 
+                Interlocked.Increment(ref mSize);
+
                 if (mMaxSize != null)
                 {
                     // Increment the size if the queue
-                    if (Interlocked.Increment(ref mSize) > mMaxSize)
+                    if (mSize > mMaxSize)
                     {
                         Interlocked.Decrement(ref mSize);
 
@@ -57,11 +77,7 @@ namespace Owin.WebSocket.Extensions
                     return next(nextState).Finally(s =>
                     {
                         var queue = (TaskQueue)s;
-                        if (queue.mMaxSize != null)
-                        {
-                            // Decrement the number of items left in the queue
-                            Interlocked.Decrement(ref queue.mSize);
-                        }
+                        Interlocked.Decrement(ref queue.mSize);
                     },
                     this);
                 },
@@ -73,7 +89,7 @@ namespace Owin.WebSocket.Extensions
         }
 
         /// <summary>
-        /// Triggers a drain fo the task queue and waits for the drain to complete
+        /// Triggers a drain fo the task queue and blocks until the drain completes
         /// </summary>
         public void Drain()
         {
