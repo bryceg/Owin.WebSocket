@@ -120,17 +120,19 @@ namespace Owin.WebSocket
         /// <summary>
         /// Fires after the websocket has been opened with the client
         /// </summary>
-        public virtual void OnOpen()
+        public virtual async Task OnOpen()
         {
+            await Task.FromResult(0);
         }
-
+        
         /// <summary>
         /// Fires when data is received from the client
         /// </summary>
         /// <param name="message">Data that was received</param>
         /// <param name="type">Message type of the data</param>
-        public virtual void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+        public virtual async Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
+            await Task.FromResult(0);
         }
 
         /// <summary>
@@ -138,8 +140,9 @@ namespace Owin.WebSocket
         /// </summary>
         /// <param name="closeStatus">Status for the web socket close status</param>
         /// <param name="closeDescription">Description for the web socket close</param>
-        public virtual void OnClose(WebSocketCloseStatus closeStatus, string closeDescription)
+        public virtual async Task OnClose(WebSocketCloseStatus closeStatus, string closeDescription)
         {
+            await Task.FromResult(0);
         }
 
         /// <summary>
@@ -223,7 +226,7 @@ namespace Owin.WebSocket
 
             mWebSocket = ((WebSocketContext)value).WebSocket;
 
-            OnOpen();
+            await OnOpen();
 
             var buffer = new byte[MaxMessageSize];
 
@@ -233,7 +236,7 @@ namespace Owin.WebSocket
                 {
                     var received = await ReceiveOneMessage(buffer);
                     if (received.Item1.Count > 0)
-                        OnMessageReceived(received.Item1, received.Item2);
+                        await OnMessageReceived(received.Item1, received.Item2);
                 }
                 catch (TaskCanceledException)
                 {
@@ -269,13 +272,14 @@ namespace Owin.WebSocket
                     await mWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                 }
             }
-            finally
-            {
-                mCancellToken.Cancel();
-
-                OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
-                    mWebSocket.CloseStatusDescription);
+            catch
+            { //Ignore
             }
+
+            mCancellToken.Cancel();
+
+            await OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
+                mWebSocket.CloseStatusDescription);
         }
 
         internal static bool IsFatalSocketException(Exception ex)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -327,25 +328,27 @@ namespace UnitTests
         public WebSocketCloseStatus CloseStatus { get; set; }
         public string CloseDescription { get; set; }
 
-        public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+        public override async Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
             LastMessage = message;
             LastMessageType = type;
 
             //Echo it back
-            SendAsync(message, true, type);
+            await SendAsync(message, true, type);
         }
 
-        public override void OnOpen()
+        public override Task OnOpen()
         {
             OnOpenCalled = true;
+            return base.OnOpen();
         }
 
-        public override void OnClose(WebSocketCloseStatus status, string description)
+        public override Task OnClose(WebSocketCloseStatus status, string description)
         {
             OnCloseCalled = true;
             CloseStatus = status;
             CloseDescription = description;
+            return base.OnClose(status, description);
         }
     }
 }
