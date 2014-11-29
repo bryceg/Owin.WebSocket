@@ -120,9 +120,9 @@ namespace Owin.WebSocket
         /// <summary>
         /// Fires after the websocket has been opened with the client
         /// </summary>
-        public virtual async Task OnOpen()
+        public virtual Task OnOpen()
         {
-            await Task.FromResult(0);
+            return Task.FromResult(0);
         }
         
         /// <summary>
@@ -130,9 +130,9 @@ namespace Owin.WebSocket
         /// </summary>
         /// <param name="message">Data that was received</param>
         /// <param name="type">Message type of the data</param>
-        public virtual async Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+        public virtual Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
-            await Task.FromResult(0);
+            return Task.FromResult(0);
         }
 
         /// <summary>
@@ -140,9 +140,9 @@ namespace Owin.WebSocket
         /// </summary>
         /// <param name="closeStatus">Status for the web socket close status</param>
         /// <param name="closeDescription">Description for the web socket close</param>
-        public virtual async Task OnClose(WebSocketCloseStatus closeStatus, string closeDescription)
+        public virtual Task OnClose(WebSocketCloseStatus closeStatus, string closeDescription)
         {
-            await Task.FromResult(0);
+            return Task.FromResult(0);
         }
 
         /// <summary>
