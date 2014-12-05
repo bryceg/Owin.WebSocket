@@ -64,7 +64,7 @@ public class MyWebSocket : WebSocketConnection
 Javascript Client:
  http://msdn.microsoft.com/en-us/library/ie/hh673567(v=vs.85).aspx
 
-Dependency Injection for WebSocketConnection instance:
+#####Dependency Injection for WebSocketConnection instance:
 
 The Microsoft Common Service Locator pattern is used for dependency injection.  To set the service locator set the GlobalContext.DependencyResolver property to your implementation.
 ```c#
