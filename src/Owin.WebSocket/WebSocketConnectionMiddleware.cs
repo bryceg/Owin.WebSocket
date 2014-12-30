@@ -2,19 +2,24 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Owin;
+using Microsoft.Practices.ServiceLocation;
+using System;
 
 namespace Owin.WebSocket
 {
     public class WebSocketConnectionMiddleware<T> : OwinMiddleware where T : WebSocketConnection
     {
         private readonly Regex mMatchPattern;
-
-        public WebSocketConnectionMiddleware(OwinMiddleware next):base(next)
+        private readonly IServiceLocator mServiceLocator;
+        
+        public WebSocketConnectionMiddleware(OwinMiddleware next, IServiceLocator locator)
+            : base(next)
         {
+            mServiceLocator = locator;
         }
 
-        public WebSocketConnectionMiddleware(OwinMiddleware next, Regex matchPattern)
-            : base(next)
+        public WebSocketConnectionMiddleware(OwinMiddleware next, IServiceLocator locator, Regex matchPattern)
+            : this(next, locator)
         {
             mMatchPattern = matchPattern;
         }
@@ -36,10 +41,14 @@ namespace Owin.WebSocket
                     matches.Add(name, value.Value);
                 }
             }
+            
+            T socketConnection;
+            if(mServiceLocator == null)
+                socketConnection = Activator.CreateInstance<T>();
+            else
+                socketConnection = mServiceLocator.GetInstance<T>();
 
-
-            var socketHandler = GlobalContext.DependencyResolver.GetInstance<T>();
-            socketHandler.AcceptSocket(context, matches);
+            socketConnection.AcceptSocket(context, matches);
 
             return Task.FromResult<object>(null);
         }

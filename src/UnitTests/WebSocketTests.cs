@@ -34,24 +34,19 @@ namespace UnitTests
         public static void Init(TestContext test)
         {
             sResolver = new TestResolver();
-            GlobalContext.DependencyResolver = sResolver;
 
             WebApp.Start(new StartOptions("http://localhost:8989"), startup =>
             {
-                startup.MapWebSocketRoute<TestConnection>("/ws");
-                startup.MapWebSocketPattern<TestConnection>("/captures/(?<capture1>.+)/(?<capture2>.+)");
+                startup.MapWebSocketRoute<TestConnection>();
+                startup.MapWebSocketRoute<TestConnection>("/ws", sResolver);
+                startup.MapWebSocketPattern<TestConnection>("/captures/(?<capture1>.+)/(?<capture2>.+)", sResolver);
             });
         }
 
-        ClientWebSocket StartStaticRouteClient(NetworkCredential cred = null)
+        ClientWebSocket StartStaticRouteClient(string route = "/ws")
         {
             var client = new ClientWebSocket();
-            if (cred != null)
-            {
-                client.Options.UseDefaultCredentials = true;
-                client.Options.Credentials = cred;
-            }
-            client.ConnectAsync(new Uri("ws://localhost:8989/ws"), CancellationToken.None).Wait();
+            client.ConnectAsync(new Uri("ws://localhost:8989" + route), CancellationToken.None).Wait();
             return client;
         }
 
@@ -70,6 +65,18 @@ namespace UnitTests
         public void ConnectionTest()
         {
             var client = StartStaticRouteClient();
+            client.State.Should().Be(WebSocketState.Open);
+
+            client.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None)
+                .Wait();
+
+            client.State.Should().Be(WebSocketState.Closed);
+        }
+
+        [TestMethod]
+        public void ConnectionTest_Attribute()
+        {
+            var client = StartStaticRouteClient("/wsa");
             client.State.Should().Be(WebSocketState.Open);
 
             client.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None)
@@ -317,6 +324,7 @@ namespace UnitTests
         }
     }
 
+    [WebSocketRoute("/wsa")]
     class TestConnection: WebSocketConnection
     {
         public ArraySegment<byte> LastMessage { get; set; }
