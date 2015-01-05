@@ -6,14 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Owin.WebSocket.Extensions;
+using Owin.WebSocket.Handlers;
 
 namespace Owin.WebSocket
 {
     public abstract class WebSocketConnection
     {
-        private readonly TaskQueue mSendQueue;
         private readonly CancellationTokenSource mCancellToken;
-        private System.Net.WebSockets.WebSocket mWebSocket;
+        private IWebSocket mWebSocket;
 
         /// <summary>
         /// Owin context for the web socket
@@ -26,11 +26,6 @@ namespace Owin.WebSocket
         public int MaxMessageSize { get; private set; }
 
         /// <summary>
-        /// The underlying websocket connection
-        /// </summary>
-        public System.Net.WebSockets.WebSocket WebSocket { get { return mWebSocket; } }
-
-        /// <summary>
         /// Arguments captured from URI using Regex
         /// </summary>
         public Dictionary<string, string> Arguments { get; private set; }
@@ -38,11 +33,10 @@ namespace Owin.WebSocket
         /// <summary>
         /// Queue of send operations to the client
         /// </summary>
-        public TaskQueue QueueSend { get { return mSendQueue;} }
+        public TaskQueue QueueSend { get { return mWebSocket.SendQueue;} }
 
         protected WebSocketConnection(int maxMessageSize = 1024*64)
         {
-            mSendQueue = new TaskQueue();
             mCancellToken = new CancellationTokenSource();
             MaxMessageSize = maxMessageSize;
         }
@@ -50,10 +44,9 @@ namespace Owin.WebSocket
         /// <summary>
         /// Closes the websocket connection
         /// </summary>
-        /// <returns></returns>
         public Task Close(WebSocketCloseStatus status, string reason)
         {
-            return mWebSocket.CloseAsync(status, reason, CancellationToken.None);
+            return mWebSocket.Close(status, reason, CancellationToken.None);
         }
 
         /// <summary>
@@ -62,9 +55,20 @@ namespace Owin.WebSocket
         /// <param name="buffer">Data to send</param>
         /// <param name="endOfMessage">End of the message?</param>
         /// <returns>Task to send the data</returns>
-        public Task SendAsyncBinary(byte[] buffer, bool endOfMessage)
+        public Task SendBinary(byte[] buffer, bool endOfMessage)
         {
-            return SendAsync(new ArraySegment<byte>(buffer), endOfMessage, WebSocketMessageType.Binary);
+            return SendBinary(new ArraySegment<byte>(buffer), endOfMessage);
+        }
+   
+        /// <summary>
+        /// Sends data to the client with binary message type
+        /// </summary>
+        /// <param name="buffer">Data to send</param>
+        /// <param name="endOfMessage">End of the message?</param>
+        /// <returns>Task to send the data</returns>
+        public Task SendBinary(ArraySegment<byte> buffer, bool endOfMessage)
+        {
+            return mWebSocket.SendBinary(buffer, endOfMessage, CancellationToken.None);
         }
 
         /// <summary>
@@ -73,9 +77,20 @@ namespace Owin.WebSocket
         /// <param name="buffer">Data to send</param>
         /// <param name="endOfMessage">End of the message?</param>
         /// <returns>Task to send the data</returns>
-        public Task SendAsyncText(byte[] buffer, bool endOfMessage)
+        public Task SendText(byte[] buffer, bool endOfMessage)
         {
-            return SendAsync(new ArraySegment<byte>(buffer), endOfMessage, WebSocketMessageType.Text);
+            return SendText(new ArraySegment<byte>(buffer), endOfMessage);
+        }
+
+        /// <summary>
+        /// Sends data to the client with the text message type
+        /// </summary>
+        /// <param name="buffer">Data to send</param>
+        /// <param name="endOfMessage">End of the message?</param>
+        /// <returns>Task to send the data</returns>
+        public Task SendText(ArraySegment<byte> buffer, bool endOfMessage)
+        {
+            return mWebSocket.SendText(buffer, endOfMessage, CancellationToken.None);
         }
 
         /// <summary>
@@ -85,28 +100,11 @@ namespace Owin.WebSocket
         /// <param name="endOfMessage">End of the message?</param>
         /// <param name="type">Message type of the data</param>
         /// <returns>Task to send the data</returns>
-        public Task SendAsync(ArraySegment<byte> buffer, bool endOfMessage, WebSocketMessageType type)
+        public Task Send(ArraySegment<byte> buffer, bool endOfMessage, WebSocketMessageType type)
         {
-            var sendContext = new SendContext { Buffer = buffer, EndOfMessage = endOfMessage, Type = type };
-
-            return mSendQueue.Enqueue(
-                async s =>
-                    {
-                        await mWebSocket.SendAsync(s.Buffer, s.Type, s.EndOfMessage, CancellationToken.None);
-                    },
-                sendContext);
+            return mWebSocket.Send(buffer, type, endOfMessage, CancellationToken.None);
         }
-
-        /// <summary>
-        /// Close the websocket connection using the close handshake
-        /// </summary>
-        /// <param name="status">Reason for closing the websocket connection</param>
-        /// <param name="statusDescription">Human readable explanation of why the connection was closed</param>
-        public Task CloseConnection(WebSocketCloseStatus status, string statusDescription)
-        {
-            return mWebSocket.CloseAsync(status, statusDescription, CancellationToken.None);
-        }
-
+        
         /// <summary>
         /// Verify the request
         /// </summary>
@@ -120,9 +118,8 @@ namespace Owin.WebSocket
         /// <summary>
         /// Fires after the websocket has been opened with the client
         /// </summary>
-        public virtual Task OnOpen()
+        public virtual void OnOpen()
         {
-            return Task.FromResult(0);
         }
         
         /// <summary>
@@ -138,11 +135,8 @@ namespace Owin.WebSocket
         /// <summary>
         /// Fires with the connection with the client has closed
         /// </summary>
-        /// <param name="closeStatus">Status for the web socket close status</param>
-        /// <param name="closeDescription">Description for the web socket close</param>
-        public virtual Task OnClose(WebSocketCloseStatus closeStatus, string closeDescription)
+        public virtual void OnClose(WebSocketCloseStatus? closeStatus, string closeStatusDescription)
         {
-            return Task.FromResult(0);
         }
 
         /// <summary>
@@ -156,21 +150,7 @@ namespace Owin.WebSocket
         /// <summary>
         /// Receive one entire message from the web socket
         /// </summary>
-        protected async Task<Tuple<ArraySegment<byte>, WebSocketMessageType>> ReceiveOneMessage(byte[] buffer)
-        {
-            var count = 0;
-            WebSocketReceiveResult result;
-            do
-            {
-                var segment = new ArraySegment<byte>(buffer, count, buffer.Length - count);
-                result = await mWebSocket.ReceiveAsync(segment, mCancellToken.Token);
 
-                count += result.Count;
-            }
-            while (!result.EndOfMessage);
-
-            return new Tuple<ArraySegment<byte>, WebSocketMessageType>(new ArraySegment<byte>(buffer, 0, count), result.MessageType);
-        }
 
         internal void AcceptSocket(IOwinContext context, IDictionary<string, string> argumentMatches)
         {
@@ -217,24 +197,26 @@ namespace Owin.WebSocket
 
         private async Task RunWebSocket(IDictionary<string, object> websocketContext)
         {
-            // Try to get the websocket context from the environment
             object value;
-            if (!websocketContext.TryGetValue(typeof(WebSocketContext).FullName, out value))
+            if (websocketContext.TryGetValue(typeof (WebSocketContext).FullName, out value))
             {
-                throw new InvalidOperationException("Unable to find web socket context");
+                mWebSocket = new NetWebSocket(((WebSocketContext) value).WebSocket);
+            }
+            else
+            {
+                mWebSocket = new OwinWebSocket(websocketContext);
             }
 
-            mWebSocket = ((WebSocketContext)value).WebSocket;
-
-            await OnOpen();
+            OnOpen();
 
             var buffer = new byte[MaxMessageSize];
+            Tuple<ArraySegment<byte>, WebSocketMessageType> received = null;
 
             do
             {
                 try
                 {
-                    var received = await ReceiveOneMessage(buffer);
+                    received = await mWebSocket.ReceiveMessage(buffer, mCancellToken.Token);
                     if (received.Item1.Count > 0)
                         await OnMessageReceived(received.Item1, received.Item2);
                 }
@@ -263,23 +245,20 @@ namespace Owin.WebSocket
                     break;
                 }
             }
-            while (!mWebSocket.CloseStatus.HasValue);
+            while (received.Item2 != WebSocketMessageType.Close);
 
             try
             {
-                if (mWebSocket.State != WebSocketState.Closed && mWebSocket.State != WebSocketState.Aborted)
-                {
-                    await mWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-                }
+                await mWebSocket.Close(WebSocketCloseStatus.NormalClosure, string.Empty, mCancellToken.Token);
             }
             catch
             { //Ignore
             }
 
-            mCancellToken.Cancel();
+            if(!mCancellToken.IsCancellationRequested)
+                mCancellToken.Cancel();
 
-            await OnClose(mWebSocket.CloseStatus.GetValueOrDefault(WebSocketCloseStatus.Empty),
-                mWebSocket.CloseStatusDescription);
+            OnClose(mWebSocket.CloseStatus, mWebSocket.CloseStatusDescription);
         }
 
         internal static bool IsFatalSocketException(Exception ex)
@@ -301,12 +280,5 @@ namespace Owin.WebSocket
             // unknown exception; treat as fatal
             return true;
         }
-    }
-
-    internal class SendContext
-    {
-        public ArraySegment<byte> Buffer;
-        public bool EndOfMessage;
-        public WebSocketMessageType Type;
     }
 }

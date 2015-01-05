@@ -57,6 +57,10 @@
     <Compile Include="Extensions\OwinExtension.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Extensions\TaskQueue.cs" />
+    <Compile Include="Handlers\IWebSocket.cs" />
+    <Compile Include="Handlers\NetWebSocket.cs" />
+    <Compile Include="Handlers\OwinWebSocket.cs" />
+    <Compile Include="Handlers\SendContext.cs" />
     <Compile Include="WebSocketConnection.cs" />
     <Compile Include="WebSocketConnectionMiddleware.cs">
       <ExcludeFromStyleCop>False</ExcludeFromStyleCop>
