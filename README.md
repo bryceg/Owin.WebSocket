@@ -12,7 +12,7 @@ Getting Started:
 
 Install the Nuget package: https://www.nuget.org/packages/Owin.WebSocket/
 
-1) Inherit from WebSocketConnection
+<b>1) Inherit from WebSocketConnection</b>
 ```c#
 using Owin.WebSocket;
 
@@ -26,12 +26,21 @@ public class MyWebSocket : WebSocketConnection
        //var json = Encoding.UT8.GetString(message.Array, message.Offset, message.Count);
        //Use something like Json.Net to read the json
     }
+    
+    //public override void OnOpen(){}
+    //public override viod OnClose(WebSocketCloseStatus closeStatus, string closeDescription){}
+    //public override bool Authenticate(IOwinContext requestContext){return true;}
 }
 ```
 
-2) In your OWIN Startup, set the URI mapping for the websocket connection.  A new instance of this class will be instantiated per web socket connection.  Refer To Owin.WebSocket.GlobalContext.DepedencyResolver if you wish to change the default resolver and use your own IoC.
+<b>2) Map the route for the web socket connection</b>
+<br>In your OWIN Startup, set the URI mapping for the websocket connection.  A new instance of this class will be instantiated per web socket connection.  Refer To dependency injection at the bottom of this file if you wish to change the default resolver and use your own IoC.
 ```c#
 using Owin.WebSocket.Extensions;
+
+//For static routes http://foo.com/ws use MapWebSocketRoute and attribute the WebSocketConnection with
+//[WebSocketRoute('/ws')]
+app.MapWebSocketRoute<MyWebSocket>();
 
 //For static routes http://foo.com/ws use MapWebSocketRoute
 app.MapWebSocketRoute<MyWebSocket>("/ws");
@@ -40,7 +49,11 @@ app.MapWebSocketRoute<MyWebSocket>("/ws");
 app.MapWebSocketPattern<MyWebSocket>("/captures/(?<capture1>.+)/(?<capture2>.+)");
 ``` 
 
-3) Send something to the client
+<b>3) Sending data to the client</b>
+<br>To send something to the client the WebSocketConnection exposes 3 methods.  
+<br>.SendText() for sending text to the client using the text message type flag.
+<br>.SendBinary() for sending binary to the client using the binary messge type flag.
+<br>.Send() allows you specify the message type for the data you are sending
 ```c#
 using Owin.WebSocket;
 
@@ -55,20 +68,20 @@ public class MyWebSocket : WebSocketConnection
 
         var toSend = Encoding.UTF8.GetBytes(json);
         
-        //Echo the message back to the client specifying that its text
-        SendAsyncText(toSend, true);
+        //Echo the message back to the client as text
+        SendText(toSend, true);
     }
 }
 ```
 
-Javascript Client:
+<h5>Javascript Client:</h5>
  http://msdn.microsoft.com/en-us/library/ie/hh673567(v=vs.85).aspx
 
 #####Dependency Injection for WebSocketConnection instance:
 
-The Microsoft Common Service Locator pattern is used for dependency injection.  To set the service locator set the GlobalContext.DependencyResolver property to your implementation.
+The Microsoft Common Service Locator pattern is used for dependency injection.  To use your own IoC pass it along to the MapWebSocketRoute call
 ```c#
 //Autofac example
-GlobalContext.DependencyResolver = new AutofacServiceLocator(container);
+app.MapWebSocketRoute<MyWebSocket>("/ws", new AutofacServiceLocator(container));
 ```
 
