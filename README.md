@@ -28,7 +28,7 @@ public class MyWebSocket : WebSocketConnection
     }
     
     //public override void OnOpen(){}
-    //public override viod OnClose(WebSocketCloseStatus closeStatus, string closeDescription){}
+    //public override void OnClose(WebSocketCloseStatus closeStatus, string closeDescription){}
     //public override bool Authenticate(IOwinContext requestContext){return true;}
 }
 ```
@@ -38,8 +38,7 @@ public class MyWebSocket : WebSocketConnection
 ```c#
 using Owin.WebSocket.Extensions;
 
-//For static routes http://foo.com/ws use MapWebSocketRoute and attribute the WebSocketConnection with
-//[WebSocketRoute('/ws')]
+//For static routes http://foo.com/ws use MapWebSocketRoute and attribute the WebSocketConnection with [WebSocketRoute('/ws')]
 app.MapWebSocketRoute<MyWebSocket>();
 
 //For static routes http://foo.com/ws use MapWebSocketRoute
