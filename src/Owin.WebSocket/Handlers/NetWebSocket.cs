@@ -34,17 +34,24 @@ namespace Owin.WebSocket.Handlers
 
         public Task SendText(ArraySegment<byte> data, bool endOfMessage, CancellationToken cancelToken)
         {
-            return mWebSocket.SendAsync(data, WebSocketMessageType.Text, endOfMessage, cancelToken);
+            return Send(data, WebSocketMessageType.Text, endOfMessage, cancelToken);
         }
 
         public Task SendBinary(ArraySegment<byte> data, bool endOfMessage, CancellationToken cancelToken)
         {
-            return mWebSocket.SendAsync(data, WebSocketMessageType.Binary, endOfMessage, cancelToken);
+            return Send(data, WebSocketMessageType.Binary, endOfMessage, cancelToken);
         }
 
         public Task Send(ArraySegment<byte> data, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancelToken)
         {
-            return mWebSocket.SendAsync(data, messageType, endOfMessage, cancelToken);
+            var sendContext = new SendContext(data, endOfMessage, messageType, cancelToken);
+
+            return mSendQueue.Enqueue(
+                async s =>
+                {
+                    await mWebSocket.SendAsync(s.Buffer, s.Type, s.EndOfMessage, s.CancelToken);
+                },
+                sendContext);
         }
 
         public Task Close(WebSocketCloseStatus closeStatus, string closeDescription, CancellationToken cancelToken)

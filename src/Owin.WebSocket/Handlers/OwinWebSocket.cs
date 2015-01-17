@@ -79,12 +79,12 @@ namespace Owin.WebSocket.Handlers
 
         public Task Send(ArraySegment<byte> data, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancelToken)
         {
-            var sendContext = new SendContext(data, endOfMessage, messageType);
+            var sendContext = new SendContext(data, endOfMessage, messageType, cancelToken);
 
             return mSendQueue.Enqueue(
                 async s =>
                 {
-                    await mSendAsync(s.Buffer, MessageTypeEnumToOpCode(s.Type), s.EndOfMessage, CancellationToken.None);
+                    await mSendAsync(s.Buffer, MessageTypeEnumToOpCode(s.Type), s.EndOfMessage, s.CancelToken);
                 },
                 sendContext);
         }
