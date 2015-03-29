@@ -102,6 +102,7 @@ namespace UnitTests
 
             client.State.Should().Be(WebSocketState.Closed);
             socket.OnCloseCalled.Should().BeTrue();
+            socket.OnCloseAsyncCalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -124,6 +125,11 @@ namespace UnitTests
             socket.OnCloseCalled.Should().BeTrue();
             socket.CloseStatus.Should().Be(WebSocketCloseStatus.NormalClosure);
             socket.CloseDescription.Should().Be(CLOSE_DESCRIPTION);
+
+            socket.OnCloseAsyncCalled.Should().BeTrue();
+            socket.AsyncCloseStatus.Should().Be(WebSocketCloseStatus.NormalClosure);
+            socket.AsyncCloseDescription.Should().Be(CLOSE_DESCRIPTION);
+        
         }
 
         [TestMethod]
@@ -139,13 +145,14 @@ namespace UnitTests
             var task = Task.Run(
                 () =>
                     {
-                        while (!socket.OnCloseCalled)
+                        while (!socket.OnCloseCalled || !socket.OnCloseAsyncCalled)
                             Thread.Sleep(10);
                     });
 
             task.Wait(TimeSpan.FromMinutes(2)).Should().BeTrue();
 
             socket.OnCloseCalled.Should().BeTrue();
+            socket.OnCloseAsyncCalled.Should().BeTrue();
             //socket.CloseStatus.Should().Be(WebSocketCloseStatus.Empty);
         }
 
@@ -330,11 +337,16 @@ namespace UnitTests
         public ArraySegment<byte> LastMessage { get; set; }
         public WebSocketMessageType LastMessageType { get; set; }
         public bool OnOpenCalled { get; set; }
+        public bool OnOpenAsyncCalled { get; set; }
         public bool OnCloseCalled { get; set; }
+        public bool OnCloseAsyncCalled { get; set; }
         public IOwinRequest Request { get; set; }
 
         public WebSocketCloseStatus? CloseStatus { get; set; }
         public string CloseDescription { get; set; }
+
+        public WebSocketCloseStatus? AsyncCloseStatus { get; set; }
+        public string AsyncCloseDescription { get; set; }
 
         public override async Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
@@ -349,6 +361,12 @@ namespace UnitTests
         {
             OnOpenCalled = true;
         }
+
+        public override Task OnOpenAsync()
+        {
+            OnOpenAsyncCalled = true;
+            return Task.Delay(0);
+        }
         
         public override void OnClose(WebSocketCloseStatus? closeStatus, string closeStatusDescription)
         {
@@ -356,5 +374,14 @@ namespace UnitTests
             CloseStatus = closeStatus;
             CloseDescription = closeStatusDescription;
         }
+
+        public override Task OnCloseAsync(WebSocketCloseStatus? closeStatus, string closeStatusDescription)
+        {
+            OnCloseAsyncCalled = true;
+            AsyncCloseStatus = closeStatus;
+            AsyncCloseDescription = closeStatusDescription;
+            return Task.Delay(0);
+        }
+    
     }
 }
