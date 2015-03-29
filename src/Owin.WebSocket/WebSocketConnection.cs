@@ -178,7 +178,7 @@ namespace Owin.WebSocket
         /// </summary>
 
 
-        internal async Task AcceptSocket(IOwinContext context, IDictionary<string, string> argumentMatches)
+        internal async Task AcceptSocketAsync(IOwinContext context, IDictionary<string, string> argumentMatches)
         {
             var accept = context.Get<Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>>("websocket.Accept");
             if (accept == null)

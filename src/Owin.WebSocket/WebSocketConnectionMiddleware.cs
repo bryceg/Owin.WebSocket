@@ -48,7 +48,7 @@ namespace Owin.WebSocket
             else
                 socketConnection = mServiceLocator.GetInstance<T>();
 
-            return socketConnection.AcceptSocket(context, matches);
+            return socketConnection.AcceptSocketAsync(context, matches);
         }
     }
 }
