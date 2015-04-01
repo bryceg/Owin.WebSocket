@@ -116,6 +116,16 @@ namespace Owin.WebSocket
         }
 
         /// <summary>
+        /// Verify the request asynchronously. Fires after AuthenticateRequest
+        /// </summary>
+        /// <param name="request">Websocket request</param>
+        /// <returns>True if the request is authenticated else false to throw unauthenticated and deny the connection</returns>
+        public virtual Task<bool> AuthenticateRequestAsync(IOwinRequest request)
+        {
+            return Task.FromResult(true);
+        }
+
+        /// <summary>
         /// Fires after the websocket has been opened with the client
         /// </summary>
         public virtual void OnOpen()
@@ -123,13 +133,21 @@ namespace Owin.WebSocket
         }
         
         /// <summary>
+        /// Fires after the websocket has been opened with the client and after OnOpen
+        /// </summary>
+        public virtual Task OnOpenAsync()
+        {
+            return Task.Delay(0);
+        }
+
+        /// <summary>
         /// Fires when data is received from the client
         /// </summary>
         /// <param name="message">Data that was received</param>
         /// <param name="type">Message type of the data</param>
         public virtual Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
         {
-            return Task.FromResult(0);
+            return Task.Delay(0);
         }
 
         /// <summary>
@@ -137,6 +155,14 @@ namespace Owin.WebSocket
         /// </summary>
         public virtual void OnClose(WebSocketCloseStatus? closeStatus, string closeStatusDescription)
         {
+        }
+
+        /// <summary>
+        /// Fires with the connection with the client has closed and after OnClose
+        /// </summary>
+        public virtual Task OnCloseAsync(WebSocketCloseStatus? closeStatus, string closeStatusDescription)
+        {
+            return Task.Delay(0);
         }
 
         /// <summary>
@@ -152,7 +178,7 @@ namespace Owin.WebSocket
         /// </summary>
 
 
-        internal void AcceptSocket(IOwinContext context, IDictionary<string, string> argumentMatches)
+        internal async Task AcceptSocketAsync(IOwinContext context, IDictionary<string, string> argumentMatches)
         {
             var accept = context.Get<Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>>("websocket.Accept");
             if (accept == null)
@@ -179,12 +205,17 @@ namespace Owin.WebSocket
 
             if (AuthenticateRequest(context.Request))
             {
-                //user was authed so accept the socket
-                accept(null, RunWebSocket);
-                return;
+                var authorized = await AuthenticateRequestAsync(context.Request);
+                if (authorized)
+                {
+                    //user was authorized so accept the socket
+                    accept(null, RunWebSocket);
+                    return;
+
+                }
             }
 
-            //see if user was forbidden or unauthorized from previous authenticaterequest failure
+            //see if user was forbidden or unauthorized from previous authenticate request failure
             if (context.Request.User != null && context.Request.User.Identity.IsAuthenticated)
             {
                 context.Response.StatusCode = 403;
@@ -208,6 +239,7 @@ namespace Owin.WebSocket
             }
 
             OnOpen();
+            await OnOpenAsync();
 
             var buffer = new byte[MaxMessageSize];
             Tuple<ArraySegment<byte>, WebSocketMessageType> received = null;
@@ -259,6 +291,7 @@ namespace Owin.WebSocket
                 mCancellToken.Cancel();
 
             OnClose(mWebSocket.CloseStatus, mWebSocket.CloseStatusDescription);
+            await OnCloseAsync(mWebSocket.CloseStatus, mWebSocket.CloseStatusDescription);
         }
 
         internal static bool IsFatalSocketException(Exception ex)
