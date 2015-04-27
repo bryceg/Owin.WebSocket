@@ -18,7 +18,7 @@ using Owin.WebSocket;
 
 public class MyWebSocket : WebSocketConnection
 {
-    public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+    public override Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
     {
        //Handle the message from the client
        
@@ -58,7 +58,7 @@ using Owin.WebSocket;
 
 public class MyWebSocket : WebSocketConnection
 {
-    public override void OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+    public override Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
     {
        //Handle the message from the client
        
@@ -68,7 +68,7 @@ public class MyWebSocket : WebSocketConnection
         var toSend = Encoding.UTF8.GetBytes(json);
         
         //Echo the message back to the client as text
-        SendText(toSend, true);
+        return SendText(toSend, true);
     }
 }
 ```
