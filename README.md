@@ -18,7 +18,7 @@ using Owin.WebSocket;
 
 public class MyWebSocket : WebSocketConnection
 {
-    public override Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
+    public override async Task OnMessageReceived(ArraySegment<byte> message, WebSocketMessageType type)
     {
        //Handle the message from the client
        
@@ -28,8 +28,8 @@ public class MyWebSocket : WebSocketConnection
     }
     
     //public override void OnOpen(){}
-    //public override void OnClose(WebSocketCloseStatus closeStatus, string closeDescription){}
-    //public override bool Authenticate(IOwinContext requestContext){return true;}
+    //public override void OnClose(WebSocketCloseStatus? closeStatus, string closeStatusDescription){}
+    //public override bool Authenticate(IOwinRequest request){return true;}
 }
 ```
 
