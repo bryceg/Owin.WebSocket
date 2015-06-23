@@ -47,6 +47,7 @@ namespace Owin.WebSocket.Handlers
         internal const int TEXT_OP = 0x1;
         internal const int BINARY_OP = 0x2;
         internal const int CLOSE_OP = 0x8;
+        internal const int PONG = 0xA;
 
         private readonly WebSocketSendAsync mSendAsync;
         private readonly WebSocketReceiveAsync mReceiveAsync;
@@ -120,6 +121,8 @@ namespace Owin.WebSocket.Handlers
                     return WebSocketMessageType.Binary;
                 case CLOSE_OP:
                     return WebSocketMessageType.Close;
+                case PONG:
+                    return WebSocketMessageType.Binary;
                 default:
                     throw new ArgumentOutOfRangeException("messageType", messageType, String.Empty);
             }
