@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Owin.WebSocket</id>
-        <version>1.4.0</version>
+        <version>1.5.0</version>
         <title>Owin.WebSocket</title>
         <authors>Bryce Godfrey</authors>
         <owners>Bryce Godfrey</owners>
