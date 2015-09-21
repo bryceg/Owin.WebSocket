@@ -44,6 +44,7 @@ namespace Owin.WebSocket.Handlers
 
     internal class OwinWebSocket : IWebSocket
     {
+        internal const int CONTINUATION_OP = 0x0;
         internal const int TEXT_OP = 0x1;
         internal const int BINARY_OP = 0x2;
         internal const int CLOSE_OP = 0x8;
@@ -115,6 +116,8 @@ namespace Owin.WebSocket.Handlers
         {
             switch (messageType)
             {
+                case CONTINUATION_OP:
+                    return WebSocketMessageType.Binary;
                 case TEXT_OP:
                     return WebSocketMessageType.Text;
                 case BINARY_OP:
