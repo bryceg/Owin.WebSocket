@@ -100,24 +100,25 @@ namespace Owin.WebSocket.Handlers
         {
             var count = 0;
             Tuple<int,bool,int> result;
+            int opType = -1;
             do
             {
                 var segment = new ArraySegment<byte>(buffer, count, buffer.Length - count);
                 result = await mReceiveAsync(segment, cancelToken);
 
                 count += result.Item3;
+                if (opType == -1)
+                    opType = result.Item1;
             }
             while (!result.Item2);
 
-            return new Tuple<ArraySegment<byte>, WebSocketMessageType>(new ArraySegment<byte>(buffer, 0, count), MessageTypeOpCodeToEnum(result.Item1));
+            return new Tuple<ArraySegment<byte>, WebSocketMessageType>(new ArraySegment<byte>(buffer, 0, count), MessageTypeOpCodeToEnum(opType));
         }
 
         private static WebSocketMessageType MessageTypeOpCodeToEnum(int messageType)
         {
             switch (messageType)
             {
-                case CONTINUATION_OP:
-                    return WebSocketMessageType.Binary;
                 case TEXT_OP:
                     return WebSocketMessageType.Text;
                 case BINARY_OP:
