@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -109,6 +110,10 @@ namespace Owin.WebSocket.Handlers
                 count += result.Item3;
                 if (opType == -1)
                     opType = result.Item1;
+
+                if (count == buffer.Length && !result.Item2)
+                    throw new InternalBufferOverflowException(
+                        "The Buffer is to small to get the Websocket Message! Increase in the Constructor!");
             }
             while (!result.Item2);
 
