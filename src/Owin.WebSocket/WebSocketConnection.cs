@@ -50,6 +50,14 @@ namespace Owin.WebSocket
         }
 
         /// <summary>
+        /// Aborts the websocket connection
+        /// </summary>
+        public void Abort()
+        {
+            mCancellToken.Cancel();
+        }
+
+        /// <summary>
         /// Sends data to the client with binary message type
         /// </summary>
         /// <param name="buffer">Data to send</param>
