@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,6 +45,7 @@ namespace Owin.WebSocket.Handlers
 
     internal class OwinWebSocket : IWebSocket
     {
+        internal const int CONTINUATION_OP = 0x0;
         internal const int TEXT_OP = 0x1;
         internal const int BINARY_OP = 0x2;
         internal const int CLOSE_OP = 0x8;
@@ -99,16 +101,23 @@ namespace Owin.WebSocket.Handlers
         {
             var count = 0;
             Tuple<int,bool,int> result;
+            int opType = -1;
             do
             {
                 var segment = new ArraySegment<byte>(buffer, count, buffer.Length - count);
                 result = await mReceiveAsync(segment, cancelToken);
 
                 count += result.Item3;
+                if (opType == -1)
+                    opType = result.Item1;
+
+                if (count == buffer.Length && !result.Item2)
+                    throw new InternalBufferOverflowException(
+                        "The Buffer is to small to get the Websocket Message! Increase in the Constructor!");
             }
             while (!result.Item2);
 
-            return new Tuple<ArraySegment<byte>, WebSocketMessageType>(new ArraySegment<byte>(buffer, 0, count), MessageTypeOpCodeToEnum(result.Item1));
+            return new Tuple<ArraySegment<byte>, WebSocketMessageType>(new ArraySegment<byte>(buffer, 0, count), MessageTypeOpCodeToEnum(opType));
         }
 
         private static WebSocketMessageType MessageTypeOpCodeToEnum(int messageType)
