@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Owin.WebSocket</id>
-        <version>1.5.0</version>
+        <version>1.6.0</version>
         <title>Owin.WebSocket</title>
         <authors>Bryce Godfrey</authors>
         <owners>Bryce Godfrey</owners>
@@ -11,7 +11,7 @@
         <description>WebSocket handler for OWIN</description>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.Owin" version="3.0.0" />
+                <dependency id="Microsoft.Owin" version="3.0.1" />
                 <dependency id="CommonServiceLocator" version="1.3" />
             </group>
         </dependencies>
