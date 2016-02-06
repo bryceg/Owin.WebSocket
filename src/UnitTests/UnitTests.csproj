@@ -95,6 +95,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="FleckTests.cs" />
+    <Compile Include="FleckTestsBase.cs" />
+    <Compile Include="OwinFleckTests.cs" />
     <Compile Include="TaskQueueTests.cs" />
     <Compile Include="WebSocketTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

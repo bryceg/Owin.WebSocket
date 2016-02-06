@@ -56,10 +56,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\FleckExtensions.cs" />
+    <Compile Include="Extensions\AppBuilderExtensions.cs" />
     <Compile Include="FleckWebSocketConnection.cs" />
     <Compile Include="FleckWebSocketConnectionMiddleware.cs" />
     <Compile Include="IOwinWebSocketConnection.cs" />
+    <Compile Include="IOwinWebSocketContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

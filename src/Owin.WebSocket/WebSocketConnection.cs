@@ -34,7 +34,7 @@ namespace Owin.WebSocket
         /// Queue of send operations to the client
         /// </summary>
         public TaskQueue QueueSend { get { return mWebSocket.SendQueue;} }
-
+        
         protected WebSocketConnection(int maxMessageSize = 1024*64)
         {
             mCancellToken = new CancellationTokenSource();
@@ -180,7 +180,7 @@ namespace Owin.WebSocket
         public virtual void OnReceiveError(Exception error)
         {
         }
-
+        
         /// <summary>
         /// Receive one entire message from the web socket
         /// </summary>
@@ -217,7 +217,6 @@ namespace Owin.WebSocket
                     //user was authorized so accept the socket
                     accept(null, RunWebSocket);
                     return;
-
                 }
             }
 

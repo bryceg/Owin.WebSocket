@@ -11,12 +11,26 @@ namespace Owin.WebSocket
     {
         private readonly Regex _matchPattern;
 
-        private readonly Action<IOwinWebSocketConnection> _config;
+        private readonly Action<IWebSocketConnection> _config;
+
+        private readonly Action<IOwinWebSocketConnection> _owinConfig;
+
+        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IWebSocketConnection> config)
+            : base(next)
+        {
+            _config = config;
+        }
+
+        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IWebSocketConnection> config, Regex matchPattern)
+            : this(next, config)
+        {
+            _matchPattern = matchPattern;
+        }
 
         public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IOwinWebSocketConnection> config)
             : base(next)
         {
-            this._config = config;
+            _owinConfig = config;
         }
 
         public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IOwinWebSocketConnection> config, Regex matchPattern)
@@ -43,11 +57,12 @@ namespace Owin.WebSocket
                 }
             }
 
-            var socketConnection = new FleckWebSocketConnection();
+            var connection = new FleckWebSocketConnection();
 
-            _config(socketConnection);
+            _config?.Invoke(connection);
+            _owinConfig?.Invoke(connection);
 
-            return socketConnection.AcceptSocketAsync(context, matches);
+            return connection.AcceptSocketAsync(context, matches);
         }
     }
 }
