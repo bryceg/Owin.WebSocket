@@ -1,29 +1,35 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using Fleck;
 using Microsoft.Owin;
-using Microsoft.Owin.Security;
+using Owin.WebSocket.Models;
 
 namespace Owin.WebSocket
 {
-    public sealed class FleckWebSocketConnection : WebSocketConnection, IOwinWebSocketConnection, IWebSocketConnectionInfo
+    public class FleckWebSocketConnection : WebSocketConnection, IOwinWebSocketConnection
     {
         private const string PingPongError = "Owin handles ping pong messages internally";
 
         private readonly OwinWebSocketContext _context;
         private readonly IOwinWebSocketConnection _connection;
+        private readonly IWebSocketConnectionInfo _connectionInfo;
 
         private bool _isAvailable;
         
         public FleckWebSocketConnection()
+            : this(1024*64)
+        {
+        }
+
+        public FleckWebSocketConnection(int maxMessageSize)
+            : base(maxMessageSize)
         {
             _connection = this;
             _context = new OwinWebSocketContext(_connection.Context, MaxMessageSize);
+            _connectionInfo = new FleckWebSocketConnectionInfo(_connection.Context);
         }
 
         #region WebSocketConnection
@@ -120,7 +126,7 @@ namespace Owin.WebSocket
             set { throw new NotSupportedException(PingPongError); }
         }
 
-        IWebSocketConnectionInfo IWebSocketConnection.ConnectionInfo => this;
+        IWebSocketConnectionInfo IWebSocketConnection.ConnectionInfo => _connectionInfo;
         bool IWebSocketConnection.IsAvailable => _isAvailable;
 
         Task IWebSocketConnection.Send(string message)
@@ -150,81 +156,5 @@ namespace Owin.WebSocket
         }
 
         #endregion
-
-        #region IWebSocketConnectionInfo
-
-        string IWebSocketConnectionInfo.SubProtocol
-        {
-            get
-            {
-                const string protocol = "Sec-WebSocket-Protocol";
-                return Context.Request.Headers.ContainsKey(protocol) 
-                    ? Context.Request.Headers[protocol] 
-                    : string.Empty;
-            }
-        }
-
-        string IWebSocketConnectionInfo.Origin
-        {
-            get
-            {
-                const string origin1 = "Origin";
-                if (Context.Request.Headers.ContainsKey(origin1))
-                    return Context.Request.Headers[origin1];
-
-                const string origin2 = "Sec-WebSocket-Origin";
-                return Context.Request.Headers.ContainsKey(origin2) 
-                    ? Context.Request.Headers[origin2] 
-                    : string.Empty;
-            }
-        }
-        
-        string IWebSocketConnectionInfo.Host => Context.Request.Host.Value;
-        string IWebSocketConnectionInfo.Path => Context.Request.Path.Value;
-        string IWebSocketConnectionInfo.ClientIpAddress => Context.Request.RemoteIpAddress;
-        int IWebSocketConnectionInfo.ClientPort => Context.Request.RemotePort ?? 0;
-        IDictionary<string, string> IWebSocketConnectionInfo.Cookies => Context.Request.Cookies.ToDictionary(k => k.Key, v => v.Value);
-        IDictionary<string, string> IWebSocketConnectionInfo.Headers => Context.Request.Headers.SelectMany(p => p.Value.Select(v => new { p.Key, Value = v })).ToDictionary(k => k.Key, v => v.Value);
-
-        Guid IWebSocketConnectionInfo.Id { get; } = Guid.NewGuid();
-        string IWebSocketConnectionInfo.NegotiatedSubProtocol { get; } = string.Empty;
-
-        #endregion
-
-        private class OwinWebSocketContext : IOwinWebSocketContext
-        {
-            private readonly IOwinContext _context;
-
-            public OwinWebSocketContext(IOwinContext context, int maxMessageSize)
-            {
-                _context = context;
-                MaxMessageSize = maxMessageSize;
-            }
-
-            public T Get<T>(string key)
-            {
-                return _context.Get<T>(key);
-            }
-
-            public IOwinContext Set<T>(string key, T value)
-            {
-                return _context.Set(key, value);
-            }
-
-            public IOwinRequest Request => _context.Request;
-            public IOwinResponse Response => _context.Response;
-            public IAuthenticationManager Authentication => _context.Authentication;
-            public IDictionary<string, object> Environment => _context.Environment;
-
-            public TextWriter TraceOutput
-            {
-                get { return _context.TraceOutput; }
-                set { _context.TraceOutput = value; }
-            }
-
-            public int MaxMessageSize { get; }
-            public WebSocketCloseStatus? CloseStatus { get; set; }
-            public string CloseStatusDescription { get; set; }
-        }
     }
 }

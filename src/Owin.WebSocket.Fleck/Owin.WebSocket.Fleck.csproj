@@ -58,9 +58,11 @@
   <ItemGroup>
     <Compile Include="Extensions\AppBuilderExtensions.cs" />
     <Compile Include="FleckWebSocketConnection.cs" />
+    <Compile Include="Models\FleckWebSocketConnectionInfo.cs" />
     <Compile Include="FleckWebSocketConnectionMiddleware.cs" />
     <Compile Include="IOwinWebSocketConnection.cs" />
-    <Compile Include="IOwinWebSocketContext.cs" />
+    <Compile Include="Models\IOwinWebSocketContext.cs" />
+    <Compile Include="Models\OwinWebSocketContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

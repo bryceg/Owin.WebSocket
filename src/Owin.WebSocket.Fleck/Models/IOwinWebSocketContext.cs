@@ -1,7 +1,7 @@
 using System.Net.WebSockets;
 using Microsoft.Owin;
 
-namespace Owin.WebSocket
+namespace Owin.WebSocket.Models
 {
     public interface IOwinWebSocketContext : IOwinContext
     {

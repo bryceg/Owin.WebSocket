@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Fleck;
-using Microsoft.Owin.Security;
+using Owin.WebSocket.Models;
 
 namespace Owin.WebSocket
 {

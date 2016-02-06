@@ -4,38 +4,34 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Fleck;
 using Microsoft.Owin;
+using Microsoft.Practices.ServiceLocation;
 
 namespace Owin.WebSocket
 {
-    public class FleckWebSocketConnectionMiddleware : OwinMiddleware
+    public class FleckWebSocketConnectionMiddleware<T> : OwinMiddleware
+        where T : FleckWebSocketConnection, new()
     {
-        private readonly Regex _matchPattern;
-
         private readonly Action<IWebSocketConnection> _config;
-
         private readonly Action<IOwinWebSocketConnection> _owinConfig;
-
-        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IWebSocketConnection> config)
-            : base(next)
+        private readonly IServiceLocator _locator;
+        private readonly Regex _matchPattern;
+        
+        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IWebSocketConnection> config, IServiceLocator locator, Regex matchPattern)
+            : this(next, locator, matchPattern)
         {
             _config = config;
         }
 
-        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IWebSocketConnection> config, Regex matchPattern)
-            : this(next, config)
-        {
-            _matchPattern = matchPattern;
-        }
-
-        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IOwinWebSocketConnection> config)
-            : base(next)
+        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IOwinWebSocketConnection> config, IServiceLocator locator, Regex matchPattern)
+            : this(next, locator, matchPattern)
         {
             _owinConfig = config;
         }
-
-        public FleckWebSocketConnectionMiddleware(OwinMiddleware next, Action<IOwinWebSocketConnection> config, Regex matchPattern)
-            : this(next, config)
+        
+        private FleckWebSocketConnectionMiddleware(OwinMiddleware next, IServiceLocator locator, Regex matchPattern)
+            : base(next)
         {
+            _locator = locator;
             _matchPattern = matchPattern;
         }
 
@@ -57,7 +53,7 @@ namespace Owin.WebSocket
                 }
             }
 
-            var connection = new FleckWebSocketConnection();
+            var connection = _locator?.GetInstance<T>() ?? new T();
 
             _config?.Invoke(connection);
             _owinConfig?.Invoke(connection);
