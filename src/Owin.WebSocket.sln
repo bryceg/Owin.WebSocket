@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.WebSocket", "Owin.WebSocket\Owin.WebSocket.csproj", "{B1D742F7-39FA-498C-B22E-1A7A61C301E7}"
 EndProject
@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8DCED5
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.WebSocket.Fleck", "Owin.WebSocket.Fleck\Owin.WebSocket.Fleck.csproj", "{32050A9E-3FC9-4A71-85BF-6645AE68B82B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +30,10 @@ Global
 		{E8AAA2FB-EA74-4120-B0A0-838926422AF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8AAA2FB-EA74-4120-B0A0-838926422AF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8AAA2FB-EA74-4120-B0A0-838926422AF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
