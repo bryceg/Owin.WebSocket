@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Fleck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace UnitTests
+namespace UnitTests.Fleck
 {
     public abstract class FleckTestsBase
     {
@@ -96,7 +96,10 @@ namespace UnitTests
             using (var client2 = new ClientWebSocket())
             {
                 client1.ConnectAsync(new Uri("ws://localhost:8989"), CancellationToken.None).Wait();
+                Task.Delay(100).Wait();
+
                 client2.ConnectAsync(new Uri("ws://localhost:8989"), CancellationToken.None).Wait();
+                Task.Delay(100).Wait();
 
                 var bytes2 = new byte[1024];
                 var segment2 = new ArraySegment<byte>(bytes2);
@@ -106,11 +109,12 @@ namespace UnitTests
                 var bytes1 = Encoding.UTF8.GetBytes(message1);
                 var segment1 = new ArraySegment<byte>(bytes1);
                 client1.SendAsync(segment1, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
+                Task.Delay(100).Wait();
 
                 var result2 = receive2.Result;
                 Assert.AreEqual(WebSocketMessageType.Text, result2.MessageType);
                 var message3 = Encoding.UTF8.GetString(segment2.Array, 0, result2.Count);
-                Assert.AreEqual(message3, "User 1: Hello world");
+                Assert.AreEqual("User 1: Hello world", message3);
 
                 client2.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None).Wait();
                 client2.Dispose();

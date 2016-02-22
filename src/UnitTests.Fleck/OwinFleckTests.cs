@@ -7,7 +7,7 @@ using Microsoft.Owin.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Owin.WebSocket.Extensions;
 
-namespace UnitTests
+namespace UnitTests.Fleck
 {
     [TestClass]
     public class OwinFleckTests : FleckTestsBase

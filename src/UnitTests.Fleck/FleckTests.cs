@@ -1,7 +1,7 @@
 ﻿using Fleck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace UnitTests
+namespace UnitTests.Fleck
 {
     [TestClass]
     public class FleckTests : FleckTestsBase

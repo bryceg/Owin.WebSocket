@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8DCED5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Owin.WebSocket.Fleck", "Owin.WebSocket.Fleck\Owin.WebSocket.Fleck.csproj", "{32050A9E-3FC9-4A71-85BF-6645AE68B82B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests.Fleck", "UnitTests.Fleck\UnitTests.Fleck.csproj", "{7D1CEED6-9BAE-4A54-8902-71DE01112070}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32050A9E-3FC9-4A71-85BF-6645AE68B82B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D1CEED6-9BAE-4A54-8902-71DE01112070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D1CEED6-9BAE-4A54-8902-71DE01112070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D1CEED6-9BAE-4A54-8902-71DE01112070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D1CEED6-9BAE-4A54-8902-71DE01112070}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

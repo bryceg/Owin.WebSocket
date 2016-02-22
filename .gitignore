@@ -1,10 +1,13 @@
 src/Owin.WebSocket/bin
 src/Owin.WebSocket/obj
-src/Owin.WebSocket/packages
+src/Owin.WebSocket.Fleck/bin
+src/Owin.WebSocket.Fleck/obj
 src/packages
 src/UnitTests/bin
 src/UnitTests/obj
-src/build
+src/UnitTests.Fleck/bin
+src/UnitTests.Fleck/obj
+*.DotSettings
 *.dll
 *.pdb
 *.suo
