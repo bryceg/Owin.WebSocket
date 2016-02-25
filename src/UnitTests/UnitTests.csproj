@@ -95,10 +95,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Owin.WebSocket.Fleck\Owin.WebSocket.Fleck.csproj">
-      <Project>{32050a9e-3fc9-4a71-85bf-6645ae68b82b}</Project>
-      <Name>Owin.WebSocket.Fleck</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Owin.WebSocket\Owin.WebSocket.csproj">
       <Project>{b1d742f7-39fa-498c-b22e-1a7a61c301e7}</Project>
       <Name>Owin.WebSocket</Name>
