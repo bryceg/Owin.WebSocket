@@ -11,7 +11,8 @@ namespace Owin.WebSocket
     {
         private readonly Regex mMatchPattern;
         private readonly IServiceLocator mServiceLocator;
-        
+        private static readonly Task completedTask = Task.FromResult(false);
+
         public WebSocketConnectionMiddleware(OwinMiddleware next, IServiceLocator locator)
             : base(next)
         {
@@ -32,7 +33,7 @@ namespace Owin.WebSocket
             {
                 var match = mMatchPattern.Match(context.Request.Path.Value);
                 if(!match.Success)
-                    return Next.Invoke(context);
+                    return Next?.Invoke(context) ?? completedTask;
 
                 for (var i = 1; i <= match.Groups.Count; i++)
                 {
