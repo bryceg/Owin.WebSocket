@@ -35,7 +35,7 @@ namespace UnitTests
         {
             sResolver = new TestResolver();
 
-            WebApp.Start(new StartOptions("http://localhost:8989"), startup =>
+            sWeb = WebApp.Start(new StartOptions("http://localhost:8989"), startup =>
             {
                 startup.MapWebSocketRoute<TestConnection>();
                 startup.MapWebSocketRoute<TestConnection>("/ws", sResolver);
