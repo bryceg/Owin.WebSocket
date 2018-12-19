@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +57,10 @@ namespace Owin.WebSocket.Handlers
 
         public Task Close(WebSocketCloseStatus closeStatus, string closeDescription, CancellationToken cancelToken)
         {
-            return mWebSocket.CloseAsync(closeStatus, closeDescription, cancelToken);
+            using (mWebSocket)
+            {
+                return mWebSocket.CloseAsync(closeStatus, closeDescription, cancelToken);
+            }
         }
         
         public async Task<Tuple<ArraySegment<byte>, WebSocketMessageType>> ReceiveMessage(byte[] buffer, CancellationToken cancelToken)
@@ -65,6 +69,10 @@ namespace Owin.WebSocket.Handlers
             WebSocketReceiveResult result;
             do
             {
+                if (count == buffer.Length)
+                    throw new InternalBufferOverflowException(
+                        "The Buffer is to small to get the Websocket Message! Increase in the Constructor!");
+
                 var segment = new ArraySegment<byte>(buffer, count, buffer.Length - count);
                 result = await mWebSocket.ReceiveAsync(segment, cancelToken);
 
