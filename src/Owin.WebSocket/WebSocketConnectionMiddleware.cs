@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Owin;
-using Microsoft.Practices.ServiceLocation;
+using CommonServiceLocator;
 using System;
 
 namespace Owin.WebSocket

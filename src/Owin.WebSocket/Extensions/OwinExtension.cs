@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Microsoft.Practices.ServiceLocation;
+using CommonServiceLocator;
 
 namespace Owin.WebSocket.Extensions
 {
